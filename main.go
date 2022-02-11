@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	mdb "github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-checker/checker/runner"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
+	"os"
 	"time"
 )
 
@@ -44,7 +46,7 @@ func checker(period int, done chan bool) {
 
 func main() {
 	mdb.InitMongo()
-	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://service:%s@rabbitmq:5672/", os.Getenv("ADMIN_PASS")))
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -53,12 +55,12 @@ func main() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		"checker", // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 

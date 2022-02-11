@@ -3,6 +3,7 @@ services:
   checker:
     build:
       context: .
+    restart: unless-stopped
     environment:
       - ADMIN_PASS=admin
       - MONGODB=mongodb://mongo:27017
@@ -14,6 +15,9 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: 'rabbitmq'
+    environment:
+      - RABBITMQ_DEFAULT_USER=service
+      - RABBITMQ_DEFAULT_PASS=admin
     ports:
       - "5672:5672"
       - "15672:15672"
