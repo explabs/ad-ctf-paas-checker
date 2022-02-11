@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+  checker:
+    build:
+      context: .
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+#  redis:
+#    image: redis:6.2-alpine
+#    command: redis-server --requirepass admin
+#    ports:
+#      - "6379:6379"
+#
+#  mongo:
+#    image: mongo:5.0
+#    container_name: up
+#    restart: unless-stopped
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: admin
+#      MONGO_INITDB_ROOT_PASSWORD: admin
+#    ports:
+#      - "27017:27017"
