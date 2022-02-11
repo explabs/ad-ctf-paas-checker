@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-func RunScript(scriptName string, args ...string) (result string, stderr string, err error) {
-	output, stderr, err := runProcess(exec.Command(scriptName, args...))
+func RunScript(args ...string) (result string, stderr string, err error) {
+	output, stderr, err := runProcess(exec.Command("python3", args...))
 	if err != nil {
 		return "", stderr, err
 	}

@@ -7,14 +7,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"os"
 )
 
 func collection() (*mongo.Collection, error) {
 	credential := options.Credential{
 		Username: "admin",
-		Password: "admin",
+		Password: os.Getenv("ADMIN_PASS"),
 	}
-	clientOpts := options.Client().ApplyURI("mongodb://localhost:27017").
+	clientOpts := options.Client().ApplyURI("mongodb://mongo:27017").
 		SetAuth(credential)
 	client, err := mongo.Connect(context.TODO(), clientOpts)
 	if err != nil {

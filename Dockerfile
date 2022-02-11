@@ -12,10 +12,11 @@ RUN go mod download
 COPY . .
 RUN go build -o ./app ./main.go
 
-FROM alpine:latest
+FROM python:3.9-alpine
 
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 WORKDIR /checker
 COPY --from=builder /checker/app .
-
-ENTRYPOINT ["./app"]
+COPY docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]

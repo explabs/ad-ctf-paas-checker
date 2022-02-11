@@ -3,6 +3,13 @@ services:
   checker:
     build:
       context: .
+    environment:
+      - ADMIN_PASS=admin
+      - MONGODB=mongodb://mongo:27017
+    volumes:
+      - ./scripts:/scripts/
+    networks:
+      - ad-ctf-paas-net
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -10,19 +17,10 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - ad-ctf-paas-net
 
-#  redis:
-#    image: redis:6.2-alpine
-#    command: redis-server --requirepass admin
-#    ports:
-#      - "6379:6379"
-#
-#  mongo:
-#    image: mongo:5.0
-#    container_name: up
-#    restart: unless-stopped
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: admin
-#      MONGO_INITDB_ROOT_PASSWORD: admin
-#    ports:
-#      - "27017:27017"
+networks:
+  ad-ctf-paas-net:
+    external: true
+    name: ad-ctf-paas-net

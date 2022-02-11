@@ -59,21 +59,18 @@ func RunChecker() error {
 				}
 			}
 
-			scriptPath := "/home/ivanh/Documents/Work/ad-ctf-paas-api/scripts/" + service.Script
-			team.Address = "localhost"
+			scriptPath := "/scripts/" + service.Script
 
 			var serviceState, putState, getState int
 			var scriptResult, stderr string
 
 			for _, action := range serviceSteps {
 				if action == "ping" {
-					scriptResult, _, err = RunScript(scriptPath, action, team.Address)
-					if err != nil {
-						log.Println(err)
-					}
-					if scriptResult != "0" {
+					scriptResult, stderr, err = RunScript(scriptPath, action, team.Address)
+					if err != nil || stderr != "" || scriptResult != "0" {
 						serviceState = -1
 						log.Printf("%s: %s on %s return %s", action, team.Name, team.Address, scriptResult)
+						log.Printf("stderr: %s err: %s", stderr, err.Error())
 						break
 					}
 				} else if action == "get" {

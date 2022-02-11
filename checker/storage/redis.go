@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/go-redis/redis"
+	"os"
 )
 
 const TeamsDbId = 0
@@ -14,8 +15,8 @@ type Checker struct {
 
 func getClient(db int) *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "admin",
+		Addr:     "redis:6379",
+		Password: os.Getenv("ADMIN_PASS"),
 		DB:       db,
 	})
 }

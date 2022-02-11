@@ -44,7 +44,7 @@ func checker(period int, done chan bool) {
 
 func main() {
 	mdb.InitMongo()
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -91,6 +91,6 @@ func main() {
 			}
 		}
 	}()
-	go log.Printf("Checker startes")
+	go log.Printf("Checker started")
 	<-forever
 }
