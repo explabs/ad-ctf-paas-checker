@@ -2,11 +2,13 @@ package runner
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"strings"
 )
 
 func RunScript(args ...string) (result string, stderr string, err error) {
+	fmt.Println(args)
 	output, stderr, err := runProcess(exec.Command("python3", args...))
 	if err != nil {
 		return "", stderr, err

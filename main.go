@@ -46,7 +46,11 @@ func checker(period int, done chan bool) {
 
 func main() {
 	mdb.InitMongo()
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://service:%s@rabbitmq:5672/", os.Getenv("ADMIN_PASS")))
+	runner.CheckDefenceMode()
+	var host, port = "rabbitmq", 5672
+	rabbitAddr := fmt.Sprintf("amqp://service:%s@%s:%d", os.Getenv("ADMIN_PASS"), host, port)
+
+	conn, err := amqp.Dial(rabbitAddr)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -87,7 +91,7 @@ func main() {
 			}
 			switch m.Type {
 			case "start":
-				go checker(1, done)
+				go checker(mdb.GetRoundInterval(), done)
 			case "stop":
 				done <- true
 			}

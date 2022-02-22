@@ -6,9 +6,12 @@ services:
     restart: unless-stopped
     environment:
       - ADMIN_PASS=admin
-      - MONGODB=mongodb://mongo:27017
+      - MONGODB=mongo:27017
+      - MODE=dev
     volumes:
-      - ./scripts:/scripts/
+      - ./scripts:/checker/scripts/
+    extra_hosts:
+      - "naliway:172.17.0.1"
     networks:
       - ad-ctf-paas-net
 

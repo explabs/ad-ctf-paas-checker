@@ -32,15 +32,7 @@ func UpdateScore(score models.Score) (*mongo.UpdateResult, error) {
 	}
 	filter := bson.M{"name": score.Name}
 	update := bson.M{
-		"$set": bson.M{
-			"round":         score.Round,
-			"services":      score.Services,
-			"last_services": score.LastServices,
-			"sla":           score.SLA,
-			"last_sla":      score.LastSLA,
-			"score":         score.Score,
-			"last_score":    score.LastScore,
-		},
+		"$set": score,
 	}
 	opts := options.Update().SetUpsert(true)
 	return coll.UpdateOne(context.Background(), filter, update, opts)
