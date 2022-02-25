@@ -7,6 +7,7 @@ import (
 	"github.com/explabs/ad-ctf-paas-api/rabbit"
 	"github.com/explabs/ad-ctf-paas-checker/checker/storage"
 	"log"
+	"strconv"
 	"sync"
 )
 
@@ -20,7 +21,7 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 		return
 	}
 	log.Println(score)
-	services, err := mdb.GetServices()
+	services, err := storage.GetServices()
 	if err != nil {
 		errors <- err
 		return
@@ -31,83 +32,26 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 	score.Round += 1
 	*round = score.Round
 	for _, service := range services {
-		serviceId := fmt.Sprintf("%s_%s", service.Name, team.Name)
+
 		if lastService, ok := score.Services[service.Name]; ok {
 			score.LastServices[service.Name] = lastService
 		} else {
-			score.Services[service.Name] = models.ScoreService{
+			defaultScore := models.ScoreService{
 				SLA:   0,
 				State: 0,
-				HP:    1000,
-				Cost:  1,
+				HP:    service.HP,
+				Cost:  service.Cost,
 			}
-			score.LastServices[service.Name] = models.ScoreService{
-				SLA:   0,
-				State: 0,
-				HP:    1000,
-				Cost:  1,
-			}
+			score.Services[service.Name] = defaultScore
+			score.LastServices[service.Name] = defaultScore
 		}
-
-		scriptPath := "scripts/" + service.Script
 
 		//ip, _, _ := net.ParseCIDR(team.Address)
 		//address := ip.String()
 		//if os.Getenv("MODE") == "dev" {
 		//	address = "localhost"
 		//}
-
-		var serviceState, putState, getState int
-		var scriptResult, stderr string
-
-		for _, action := range serviceSteps {
-			if action == "ping" {
-				scriptResult, stderr, err = RunScript(scriptPath, action, team.Login)
-				if err != nil || stderr != "" || scriptResult != "0" {
-					serviceState = -1
-					log.Printf("%s: %s on %s return %s", action, team.Name, team.Login, scriptResult)
-					log.Printf("stderr: %s err: %s", stderr, err.Error())
-					break
-				}
-			} else if action == "get" && score.Round > 1 {
-				uniqValue, err := storage.GetServiceActionResult(serviceId, "put")
-				if err != nil {
-					log.Println(err)
-				}
-				if uniqValue == "" {
-					continue
-				}
-				scriptResult, stderr, err = RunScript(scriptPath, action, team.Login, uniqValue)
-				if err != nil || stderr != "" {
-					log.Println(err)
-				}
-				if stderr != "" {
-					log.Println(stderr)
-				}
-
-				if scriptResult == storage.GetFlag(serviceId) {
-					getState = 1
-				}
-			} else if action == "put" {
-				flag := GenerateFlag(20)
-				scriptResult, stderr, err = RunScript(scriptPath, action, team.Login, flag)
-				if err != nil {
-					log.Println(err)
-				}
-				if stderr == "" {
-					putState = 1
-					storage.SaveFlag(serviceId, flag)
-				}
-
-			}
-			storage.SaveServiceResult(serviceId, action, scriptResult)
-			log.Printf("%s: %s on %s return %s", action, team.Name, team.Login, scriptResult)
-		}
-		if score.Round > 1 {
-			serviceState = serviceState + getState&putState
-		} else {
-			serviceState = serviceState + putState
-		}
+		serviceState := ServiceCheckers(service, team, score.Round)
 		var serviceSLA float64
 		// TODO: Fix math!!!
 		if serviceState >= 0 {
@@ -142,4 +86,68 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 		answer := rabbit.SendRPCMessage("exploits", message)
 		log.Println(answer)
 	}
+}
+
+func ServiceCheckers(service *storage.Service, team *models.TeamInfo, round int) int {
+	var scriptResult, stderr string
+	var serviceState int
+	var err error
+
+	scriptPath := "scripts/" + service.Script
+	counter := 0
+
+	scriptResult, stderr, err = RunScript(scriptPath, "0", "ping", team.Login)
+	if err != nil || stderr != "" || scriptResult != "pong" {
+		log.Printf("ping: %s %s stderr: %s err: %s", service.Name, team.Login, stderr, err.Error())
+		return -1
+	}
+	log.Printf("ping: %s return %s", team.Login, scriptResult)
+
+	for counter < service.Flags {
+		strCounter := strconv.Itoa(counter)
+		serviceId := fmt.Sprintf("%s_%s_%d", service.Name, team.Name, counter)
+
+		var putState, getState int
+
+		uniqValue, err := storage.GetServiceActionResult(serviceId, "put")
+		if err != nil {
+			log.Println(err)
+		}
+		if uniqValue != "" {
+			scriptResult, stderr, err = RunScript(scriptPath, strCounter, "get", team.Login, uniqValue)
+			if err != nil || stderr != "" {
+				log.Println(stderr, err)
+			}
+			if scriptResult == storage.GetFlag(serviceId) {
+				getState = 1
+			}
+			storage.SaveServiceResult(serviceId, "get", scriptResult)
+			log.Printf("get %d: %s on %s return %s", counter, team.Name, team.Login, scriptResult)
+
+		}
+
+		flag := GenerateFlag(20)
+		scriptResult, stderr, err = RunScript(scriptPath, strCounter, "put", team.Login, flag)
+		if err != nil {
+			log.Println(err)
+		}
+		if stderr == "" {
+			putState = 1
+			storage.SaveFlag(serviceId, flag)
+		}
+		storage.SaveServiceResult(serviceId, "put", scriptResult)
+		log.Printf("put %d: %s on %s return %s", counter, team.Name, team.Login, scriptResult)
+
+		if round > 1 {
+			serviceState += getState & putState
+		} else {
+			serviceState += putState
+		}
+
+		counter++
+	}
+	if serviceState != counter {
+		return 0
+	}
+	return 1
 }

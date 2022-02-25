@@ -10,23 +10,35 @@ import (
 	"os"
 )
 
-func collection() (*mongo.Collection, error) {
+func connect() (*mongo.Client, error) {
 	credential := options.Credential{
 		Username: "admin",
 		Password: os.Getenv("ADMIN_PASS"),
 	}
 	clientOpts := options.Client().ApplyURI("mongodb://mongo:27017").
 		SetAuth(credential)
-	client, err := mongo.Connect(context.TODO(), clientOpts)
+	return mongo.Connect(context.TODO(), clientOpts)
+
+}
+
+func scoreboard() (*mongo.Collection, error) {
+	client, err := connect()
 	if err != nil {
 		return nil, err
 	}
 	coll := client.Database("ad").Collection("scoreboard")
 	return coll, nil
 }
+func services() *mongo.Collection {
+	client, err := connect()
+	if err != nil {
+		return nil
+	}
+	return client.Database("ad").Collection("services")
+}
 
 func UpdateScore(score models.Score) (*mongo.UpdateResult, error) {
-	coll, err := collection()
+	coll, err := scoreboard()
 	if err != nil {
 		log.Fatal(err)
 	}

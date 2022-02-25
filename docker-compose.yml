@@ -9,7 +9,8 @@ services:
       - MONGODB=mongo:27017
       - MODE=dev
     volumes:
-      - ./scripts:/checker/scripts/
+      - ./scripts/checkers/:/checker/scripts/
+      - ./config.yml:/checker/config.yml
     extra_hosts:
       - "naliway:172.17.0.1"
     networks:

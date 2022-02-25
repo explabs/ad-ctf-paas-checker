@@ -1,0 +1,6 @@
+checker:
+  - name: ExampleTask
+    cost: 3
+    hp: 1000
+    flags: 1
+    script: example_task.py

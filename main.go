@@ -5,6 +5,7 @@ import (
 	"fmt"
 	mdb "github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-checker/checker/runner"
+	"github.com/explabs/ad-ctf-paas-checker/checker/storage"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"os"
@@ -47,6 +48,12 @@ func checker(period int, done chan bool) {
 func main() {
 	mdb.InitMongo()
 	runner.CheckDefenceMode()
+
+	var srv storage.ServicesInfo
+	err := srv.Load()
+	failOnError(err, "Failed to read config.yml")
+	storage.UploadServices(srv.Services)
+
 	var host, port = "rabbitmq", 5672
 	rabbitAddr := fmt.Sprintf("amqp://service:%s@%s:%d", os.Getenv("ADMIN_PASS"), host, port)
 
