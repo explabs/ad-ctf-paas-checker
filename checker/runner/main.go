@@ -35,8 +35,6 @@ func CheckDefenceMode() {
 	}
 }
 
-var serviceSteps = []string{"ping", "get", "put"}
-
 func RunChecker() error {
 	storageTeams, err := mdb.GetTeams()
 	if err != nil {

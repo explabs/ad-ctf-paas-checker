@@ -42,7 +42,7 @@ func UpdateScore(score models.Score) (*mongo.UpdateResult, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	filter := bson.M{"name": score.Name}
+	filter := bson.M{"login": score.Login}
 	update := bson.M{
 		"$set": score,
 	}
