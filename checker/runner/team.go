@@ -37,10 +37,11 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 			score.LastServices[service.Name] = lastService
 		} else {
 			defaultScore := models.ScoreService{
-				SLA:   0,
-				State: 0,
-				HP:    service.HP,
-				Cost:  service.Cost,
+				SLA:     0,
+				State:   0,
+				HP:      service.HP,
+				TotalHP: service.HP,
+				Cost:    service.Cost,
 			}
 			score.Services[service.Name] = defaultScore
 			score.LastServices[service.Name] = defaultScore
