@@ -67,7 +67,6 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 			serviceData.State = serviceState
 			score.Services[service.Name] = serviceData
 		}
-		log.Println(score)
 	}
 	if score.Round == 1 {
 		score.SLA = SumSLA(servicesSLA...)
@@ -80,7 +79,7 @@ func TeamChecker(wg *sync.WaitGroup, team *models.TeamInfo, round *int) {
 		errors <- updateErr
 		return
 	}
-	log.Println(update.ModifiedCount)
+	log.Println("modified", update.ModifiedCount)
 
 	if defenceMode {
 		message := fmt.Sprintf("{\"team\":\"%s\", \"round\":\"%d\"}", team.Login, score.Round)

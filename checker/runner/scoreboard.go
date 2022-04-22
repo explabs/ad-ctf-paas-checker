@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"fmt"
 	"github.com/explabs/ad-ctf-paas-api/database"
 	"github.com/explabs/ad-ctf-paas-api/models"
 	"github.com/explabs/ad-ctf-paas-checker/checker/storage"
@@ -13,6 +14,8 @@ func calculateDefenceScore(score *models.Score) {
 		// update HP of service
 		serviceValues.HP = healthPoints
 		score.Services[serviceName] = serviceValues
+
+		fmt.Println(score)
 
 		serviceScore := float64(healthPoints) * score.SLA
 		resultScores += serviceScore
