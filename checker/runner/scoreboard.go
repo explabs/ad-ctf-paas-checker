@@ -9,7 +9,8 @@ import (
 func calculateDefenceScore(score *models.Score) {
 	var resultScores float64
 	for _, serviceValues := range score.Services {
-		healthPoints := serviceValues.HP - serviceValues.Lost*serviceValues.Cost
+		healthPoints := serviceValues.TotalHP - serviceValues.Lost*serviceValues.Cost
+		serviceValues.HP = healthPoints
 		serviceScore := float64(healthPoints) * score.SLA
 		resultScores += serviceScore
 	}
